@@ -24,6 +24,7 @@ public class Picture implements Serializable {
     private Long id;
     private String description;
     private String pathToFile;
+    private User user;
 
     public Picture() {
     }
@@ -52,17 +53,21 @@ public class Picture implements Serializable {
         this.pathToFile = pathToFile;
     }
 
-    @Override
-    public String toString() {
-        return "Picture{" + "id=" + id + ", description=" + description + ", pathToFile=" + pathToFile + '}';
+        public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     @Override
     public int hashCode() {
-        int hash = 3;
-        hash = 67 * hash + Objects.hashCode(this.id);
-        hash = 67 * hash + Objects.hashCode(this.description);
-        hash = 67 * hash + Objects.hashCode(this.pathToFile);
+        int hash = 5;
+        hash = 29 * hash + Objects.hashCode(this.id);
+        hash = 29 * hash + Objects.hashCode(this.description);
+        hash = 29 * hash + Objects.hashCode(this.pathToFile);
+        hash = 29 * hash + Objects.hashCode(this.user);
         return hash;
     }
 
@@ -87,7 +92,20 @@ public class Picture implements Serializable {
         if (!Objects.equals(this.id, other.id)) {
             return false;
         }
+        if (!Objects.equals(this.user, other.user)) {
+            return false;
+        }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "Picture{"
+                + "id=" + id 
+                + ", description=" + description 
+                + ", pathToFile=" + pathToFile 
+                + ", user=" + user.getLogin()
+                + '}';
     }
 
     

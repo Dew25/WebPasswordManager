@@ -69,7 +69,7 @@ public class MyServlet extends HttpServlet {
         String path = request.getServletPath();
         switch (path) {
             case "/addAccountBox":
-                List<Picture> pictures = pictureFacade.findAll();
+                List<Picture> pictures = pictureFacade.findAllForUser(authUser);
                 request.setAttribute("pictures", pictures);
                 request.getRequestDispatcher("/WEB-INF/addAccountBox.jsp").forward(request, response);
                 break;

@@ -6,6 +6,7 @@
 package servlets;
 
 import entity.Picture;
+import entity.User;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -24,6 +25,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 import org.imgscalr.Scalr;
 import session.PictureFacade;
@@ -52,6 +54,19 @@ public class UploadServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         request.setCharacterEncoding("UTF-8");
+        HttpSession session = request.getSession(false);
+        if(session == null){
+            request.setAttribute("info", "Авторизуйтесь");
+            request.getRequestDispatcher("/showLogin").forward(request, response);
+            return;
+        }
+        //Authentification
+        User authUser = (User) session.getAttribute("authUser");
+        if(authUser == null){
+            request.setAttribute("info", "Авторизуйтесь");
+            request.getRequestDispatcher("/showLogin").forward(request, response);
+            return;
+        }
         String path = request.getServletPath();
         switch (path) {
             case "/showUploadFile":
@@ -62,13 +77,16 @@ public class UploadServlet extends HttpServlet {
                 .stream()
                 .filter( part -> "file".equals(part.getName()))
                 .collect(Collectors.toList());
-                String imagesFolder = "D:\\UploadDir\\WebPasswordManager";
+                String imagesFolder = "D:\\UploadDir\\WebPasswordManager\\";
+                String imagesUserFolder =imagesFolder+authUser.getLogin();
 //                String imagesFolder = ResourceBundle.getBundle("resouces/directories").getString("uploadDir");
                 for(Part filePart : fileParts){
-                    String pathToFile = imagesFolder + File.separatorChar
+                    File dirForUserFiles = new File(imagesUserFolder);
+                    dirForUserFiles.mkdirs();
+                    String pathToFile = imagesUserFolder+File.separatorChar
                                     +getFileName(filePart);
-                    
-                    File tempFile = new File(imagesFolder+File.separatorChar+"tmp"+File.separatorChar+getFileName(filePart));
+                    String pathToTempFile = imagesFolder+File.separatorChar+"tmp"+File.separatorChar+getFileName(filePart);
+                    File tempFile = new File(pathToTempFile);
                     tempFile.mkdirs();
                     try(InputStream fileContent = filePart.getInputStream()){
                        Files.copy(
@@ -82,6 +100,7 @@ public class UploadServlet extends HttpServlet {
                     Picture picture = new Picture();
                     picture.setDescription(description);
                     picture.setPathToFile(pathToFile);
+                    picture.setUser(authUser);
                     pictureFacade.create(picture);
                 }    
                 request.setAttribute("info", "Файл успешно сохранен");
