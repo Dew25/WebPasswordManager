@@ -21,6 +21,7 @@ import javax.servlet.http.HttpSession;
 import session.AccountBoxFacade;
 import session.PictureFacade;
 import session.UserFacade;
+import session.UserRolesFacade;
 import tools.SymmetricCrypt;
 
 /**
@@ -39,6 +40,7 @@ public class MyServlet extends HttpServlet {
     @EJB AccountBoxFacade accountBoxFacade;
     @EJB PictureFacade pictureFacade;
     @EJB UserFacade userFacade;
+    @EJB UserRolesFacade userRolesFacade;
     
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -65,6 +67,9 @@ public class MyServlet extends HttpServlet {
             request.setAttribute("info", "Авторизуйтесь");
             request.getRequestDispatcher("/showLogin").forward(request, response);
             return;
+        }
+        if(userRolesFacade.isRole("USER",authUser)){
+            
         }
         String path = request.getServletPath();
         switch (path) {

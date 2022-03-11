@@ -5,18 +5,11 @@
  */
 package servlets;
 
+import entity.Role;
 import entity.User;
+import entity.UserRoles;
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.crypto.BadPaddingException;
-import javax.crypto.*;
 import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -24,8 +17,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.xml.bind.DatatypeConverter;
+import session.RoleFacade;
 import session.UserFacade;
+import session.UserRolesFacade;
 import tools.PasswordProtected;
 
 /**
@@ -41,6 +35,8 @@ import tools.PasswordProtected;
 })
 public class LoginServlet extends HttpServlet {
     @EJB UserFacade userFacade;
+    @EJB RoleFacade roleFacade;
+    @EJB UserRolesFacade userRolesFacade;
     
     
     @Override
@@ -59,6 +55,20 @@ public class LoginServlet extends HttpServlet {
         user.setPassword(password);
         user.setListAccountBox(new ArrayList<>());
         userFacade.create(user);
+        Role role = new Role();
+        role.setRoleName("USER");
+        roleFacade.create(role);
+        UserRoles ur = new UserRoles();
+        ur.setRole(role);
+        ur.setUser(user);
+        userRolesFacade.create(ur);
+        role = new Role();
+        role.setRoleName("ADMINISTRATOR");
+        roleFacade.create(role);
+        ur = new UserRoles();
+        ur.setRole(role);
+        ur.setUser(user);
+        userRolesFacade.create(ur);
     }
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -155,6 +165,16 @@ public class LoginServlet extends HttpServlet {
                 password1 = passwordProtected.getProtectedPassword(password1, salt);
                 newUser.setPassword(password1);
                 userFacade.create(newUser);
+                Role role = roleFacade.findRoleByRoleName("USER");
+                if(role == null){
+                    request.setAttribute("info", "Не найдена роль. Обратитесь к разработчику");
+                    request.getRequestDispatcher("/showRegistration").forward(request, response);
+                    break;
+                }
+                UserRoles ur = new UserRoles();
+                ur.setRole(role);
+                ur.setUser(newUser);
+                userRolesFacade.create(ur);
                 request.setAttribute("info", "Привет, "+newUser.getFirstName()+"! Авторизуйтесь");
                 request.getRequestDispatcher("/showLogin").forward(request, response);
                 break;
