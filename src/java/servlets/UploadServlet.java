@@ -36,7 +36,9 @@ import session.PictureFacade;
  */
 @WebServlet(name = "UploadServlet", urlPatterns = {
     "/uploadFile", 
-    "/showUploadFile"
+    "/showUploadFile",
+    "/deletePicture",
+    
 })
 @MultipartConfig()
 public class UploadServlet extends HttpServlet {
@@ -70,6 +72,8 @@ public class UploadServlet extends HttpServlet {
         String path = request.getServletPath();
         switch (path) {
             case "/showUploadFile":
+                List<Picture> picturs = pictureFacade.findAllForUser(authUser);
+                request.setAttribute("picturs", picturs);
                 request.getRequestDispatcher("/uploadFile.jsp").forward(request, response);
                 break;
             case "/uploadFile":
@@ -104,9 +108,20 @@ public class UploadServlet extends HttpServlet {
                     pictureFacade.create(picture);
                 }    
                 request.setAttribute("info", "Файл успешно сохранен");
-                request.getRequestDispatcher("/uploadFile.jsp").forward(request, response);
+                request.getRequestDispatcher("/showUploadFile").forward(request, response);
                 break;
-            
+            case "/deletePicture":
+                String pictureId = request.getParameter("pictureId");
+                Picture deletePicture = pictureFacade.find(Long.parseLong(pictureId));
+                pictureFacade.remove(deletePicture);
+                File deleteFile = new File(deletePicture.getPathToFile());
+                if(deleteFile.delete()){
+                    request.setAttribute("info", "Файл успешно удален");
+                }else{
+                    request.setAttribute("info", "Файл удалить не удалось");
+                };
+                request.getRequestDispatcher("/showUploadFile").forward(request, response);
+                break;
         }
     }
     private String getFileName(Part part){

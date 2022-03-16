@@ -7,10 +7,12 @@ package entity;
 
 import java.io.Serializable;
 import java.util.Objects;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 
 /**
  *
@@ -24,6 +26,7 @@ public class Picture implements Serializable {
     private Long id;
     private String description;
     private String pathToFile;
+    @OneToOne(cascade = CascadeType.DETACH)
     private User user;
 
     public Picture() {

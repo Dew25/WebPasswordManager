@@ -22,4 +22,17 @@
         </div>
     </div>
 </div>
+<div class="album py-5 bg-light">
+    <div class="container d-flex justify-content-center">
+        <c:forEach var="pic" items="${picturs}">
+            <div class="card shadow-sm m-1"  style="width: 10rem;">
+                <img src="insertFile/${pic.pathToFile}" style="height: 12rem;">
+                <div class="card-body">
+                    <p class="text-info">${pic.description}</p>
+                    <a href="deletePicture?pictureId=${pic.id}">Удалить</a>
+                </div>
+            </div>
+        </c:forEach>
+    </div>
+</div>
 
