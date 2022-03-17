@@ -30,8 +30,8 @@ public class AccountBox implements Serializable {
     private String urlLogin;
     private String urlPassword;
     private String url;
-    @OneToOne(cascade = CascadeType.REMOVE)
-    private Picture picture;
+    @OneToOne(cascade = CascadeType.DETACH)
+    private Picture picture = new Picture();
     @Transient
     private final SymmetricCrypt sc;
 
@@ -142,13 +142,24 @@ public class AccountBox implements Serializable {
        String pathern1 = "http://";
        String pathern2 = "https://";
        String localhost = "localhost";
-       String subStr1 = url.substring(0, 7);
-       String subStr2 = url.substring(0, 8);
-       String subStr3 = url.substring(0, 9);
-       
-       if(subStr1.equals(pathern1) || subStr2.equals(pathern2)){
-           return url;
-       }else{
+       String subStr1 = "";
+       String subStr2 = "";
+       String subStr3 = "";
+       try {
+            subStr1 = url.substring(0, 7);
+            subStr2 = url.substring(0, 8);
+            subStr3 = url.substring(0, 9);
+            if(subStr1.equals(pathern1) || subStr2.equals(pathern2)){
+                return url;
+            }else{
+                if(subStr3.equals(localhost)){
+                    url = pathern1+url;
+                    return url;
+                }
+                url = pathern2+url;
+                return url;
+            }
+       } catch (Exception e) {
            if(subStr3.equals(localhost)){
                url = pathern1+url;
                return url;
@@ -156,5 +167,6 @@ public class AccountBox implements Serializable {
            url = pathern2+url;
            return url;
        }
+       
    }
 }

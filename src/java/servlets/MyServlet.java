@@ -34,6 +34,7 @@ import tools.SymmetricCrypt;
     "/listAccounts",
     "/showAccount",
     "/removeAccount",
+    "/showAccountsWithThisPictureBound",
         
 })
 public class MyServlet extends HttpServlet {
@@ -146,13 +147,26 @@ public class MyServlet extends HttpServlet {
             case "/removeAccount":
                 String id = request.getParameter("id");
                 try {
-                    for(AccountBox accountBox : authUser.getListAccountBox()){
-                        if(accountBox.getId().equals(Long.parseLong(id))){
-                            authUser.getListAccountBox().remove(accountBox);
-                            userFacade.edit(authUser);
-                            accountBoxFacade.remove(accountBox);
-                            session.setAttribute("authUser", authUser);
-                            File file = new File(accountBox.getPicture().getPathToFile());
+                    for(AccountBox accountBox : authUser.getListAccountBox()){ //получаем аккаунты от вошедшего пользователя
+                        if(accountBox.getId().equals(Long.parseLong(id))){ // выбираем указанный аккаунт из списка аккаунтов
+                            authUser.getListAccountBox().remove(accountBox); // удаляем уакзанный аккаунт
+                            userFacade.edit(authUser); // и сохраняем новое состояние пользователя в базу
+                            session.setAttribute("authUser", authUser); //переписываем состояние обновленного вошедшего пользователя
+                            int countAccountBox = accountBoxFacade.findAccountsWithThisPictureBond(accountBox.getPicture()).size();
+                            if(countAccountBox > 1){ //если количество связанный с изображением аккаунтов больше 1, удаляем только аккаунты
+                                accountBoxFacade.edit(accountBox); 
+                                accountBoxFacade.remove(accountBox);
+                                request.setAttribute("info", "Удален аккаунт: "+accountBox.getName());
+                                break;
+                            }
+                            //если количество связанный с изображением аккаунтов больше 1 является ложью, 
+                            //удаляем не только аккаунт, но и изображение из базы,
+                            //но и с диска
+                            accountBoxFacade.edit(accountBox); //ставим accountBox под управление контекста постоянства
+                            accountBoxFacade.remove(accountBox); // удаляем управляемый объект
+                            pic = pictureFacade.find(accountBox.getPicture().getId());
+                            pictureFacade.remove(pic);// получаем и удаляем объект изображения из базы и далее с диска
+                            File file = new File(pic.getPathToFile());
                             file.delete();
                             request.setAttribute("info", "Удален аккаунт: "+accountBox.getName());
                             break;
@@ -164,7 +178,13 @@ public class MyServlet extends HttpServlet {
                 }
                 request.getRequestDispatcher("/listAccounts").forward(request, response);
                 break;
-            
+            case "/showAccountsWithThisPictureBound":
+                String pictureId = request.getParameter("pictureId");
+                Picture pictureBoundWithAccounds = pictureFacade.find(Long.parseLong(pictureId));
+                List<AccountBox> listAccountsWithThisPictureBound = accountBoxFacade.findAccountsWithThisPictureBond(pictureBoundWithAccounds);
+                request.setAttribute("listAccountsWithThisPictureBound", listAccountsWithThisPictureBound);
+                request.getRequestDispatcher("/WEB-INF/showAccountsWithThisPictureBound.jsp").forward(request, response);
+                break;
         }
         
     }
